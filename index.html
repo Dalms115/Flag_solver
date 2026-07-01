@@ -48,7 +48,6 @@
     }
 
     .result {
-      margin-top: 20px;
       text-align: left;
       background: #0d1117;
       padding: 15px;
@@ -76,10 +75,6 @@
       border-radius: 8px;
       margin-bottom: 15px;
       font-weight: bold;
-    }
-
-    .none {
-      color: #ff6b6b;
     }
   </style>
 </head>
@@ -133,55 +128,92 @@
 
         flags.push({
           name: "Flag " + i,
-          value: Number(input.value)
+          value: Number(input.value),
+          index: i - 1
         });
       }
 
-      let html = "<div class='result'>";
-      let allSolved = true;
+      const targets = code.split("").map(Number);
+      const combinationsByPlace = [];
 
-      for (let place = 0; place < 4; place++) {
-        const target = Number(code[place]);
-        const matches = [];
+      for (let p = 0; p < 4; p++) {
+        const target = targets[p];
+        const combos = [];
 
         for (let i = 0; i < flags.length; i++) {
           if (flags[i].value === target) {
-            matches.push(flags[i].name + " (" + flags[i].value + ")");
+            combos.push([flags[i]]);
           }
         }
 
         for (let i = 0; i < flags.length; i++) {
           for (let j = i + 1; j < flags.length; j++) {
             if (flags[i].value + flags[j].value === target) {
-              matches.push(
-                flags[i].name + " (" + flags[i].value + ") + " +
-                flags[j].name + " (" + flags[j].value + ")"
-              );
+              combos.push([flags[i], flags[j]]);
             }
           }
         }
 
-        html += "<div class='place'>";
-        html += "<strong>Place " + (place + 1) + " needs " + target + ":</strong><br>";
+        combinationsByPlace.push(combos);
+      }
 
-        if (matches.length === 0) {
-          allSolved = false;
-          html += "<span class='none'>No valid flag combination found.</span>";
-        } else {
-          html += matches.join("<br>");
+      function findSolution(place, usedFlags, currentSolution) {
+        if (place === 4) {
+          return currentSolution;
         }
 
+        for (const combo of combinationsByPlace[place]) {
+          let canUse = true;
+
+          for (const flag of combo) {
+            if (usedFlags.has(flag.index)) {
+              canUse = false;
+              break;
+            }
+          }
+
+          if (canUse) {
+            const newUsedFlags = new Set(usedFlags);
+            for (const flag of combo) {
+              newUsedFlags.add(flag.index);
+            }
+
+            const result = findSolution(
+              place + 1,
+              newUsedFlags,
+              [...currentSolution, combo]
+            );
+
+            if (result) {
+              return result;
+            }
+          }
+        }
+
+        return null;
+      }
+
+      const solution = findSolution(0, new Set(), []);
+
+      if (!solution) {
+        output.innerHTML =
+          "<div class='error'>❌ No complete solution exists. Check your code or flag values.</div>";
+        return;
+      }
+
+      let html = "<div class='success'>✅ Complete solution found.</div>";
+      html += "<div class='result'>";
+
+      for (let i = 0; i < solution.length; i++) {
+        const combo = solution[i];
+
+        html += "<div class='place'>";
+        html += "<strong>Place " + (i + 1) + " needs " + targets[i] + ":</strong><br>";
+        html += combo.map(flag => flag.name + " (" + flag.value + ")").join(" + ");
         html += "</div>";
       }
 
       html += "</div>";
-
-      if (allSolved) {
-        html = "<div class='success'>✅ Solution found.</div>" + html;
-      } else {
-        html = "<div class='error'>❌ No complete solution exists. Check your code or flag values.</div>" + html;
-      }
-
       output.innerHTML = html;
     }
   </script>
