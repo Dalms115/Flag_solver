@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flag Code Solver</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: white;
+      text-align: center;
+      padding: 30px;
+    }
+
+    .box {
+      background: #1c1c1c;
+      border: 1px solid #333;
+      border-radius: 10px;
+      padding: 20px;
+      max-width: 650px;
+      margin: 20px auto;
+    }
+
+    input {
+      padding: 10px;
+      margin: 6px;
+      width: 90px;
+      border-radius: 6px;
+      border: none;
+      text-align: center;
+      font-size: 16px;
+    }
+
+    button {
+      padding: 12px 25px;
+      margin-top: 15px;
+      border: none;
+      border-radius: 8px;
+      background: #2ea043;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #238636;
+    }
+
+    .result {
+      margin-top: 20px;
+      text-align: left;
+      background: #0d1117;
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid #30363d;
+    }
+
+    .place {
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #333;
+    }
+
+    .error {
+      background: #8b0000;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      font-weight: bold;
+    }
+
+    .success {
+      background: #0d6b2f;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      font-weight: bold;
+    }
+
+    .none {
+      color: #ff6b6b;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Flag Code Solver</h1>
+  <p>Enter a 4 digit code and the numeric values of 6 flags.</p>
+
+  <div class="box">
+    <h2>Code</h2>
+    <input id="code" maxlength="4" placeholder="3563" />
+  </div>
+
+  <div class="box">
+    <h2>Flag Values</h2>
+    <input id="flag1" type="number" placeholder="Flag 1" />
+    <input id="flag2" type="number" placeholder="Flag 2" />
+    <input id="flag3" type="number" placeholder="Flag 3" />
+    <br />
+    <input id="flag4" type="number" placeholder="Flag 4" />
+    <input id="flag5" type="number" placeholder="Flag 5" />
+    <input id="flag6" type="number" placeholder="Flag 6" />
+    <br />
+    <button onclick="solve()">Solve</button>
+  </div>
+
+  <div class="box">
+    <h2>Solution</h2>
+    <div id="output">Enter values and press Solve.</div>
+  </div>
+
+  <script>
+    function solve() {
+      const code = document.getElementById("code").value.trim();
+      const output = document.getElementById("output");
+
+      if (!/^\d{4}$/.test(code)) {
+        output.innerHTML = "<div class='error'>Please enter a valid 4 digit code.</div>";
+        return;
+      }
+
+      const flags = [];
+
+      for (let i = 1; i <= 6; i++) {
+        const input = document.getElementById("flag" + i);
+
+        if (input.value === "") {
+          output.innerHTML = "<div class='error'>Please enter all 6 flag values.</div>";
+          return;
+        }
+
+        flags.push({
+          name: "Flag " + i,
+          value: Number(input.value)
+        });
+      }
+
+      let html = "<div class='result'>";
+      let allSolved = true;
+
+      for (let place = 0; place < 4; place++) {
+        const target = Number(code[place]);
+        const matches = [];
+
+        for (let i = 0; i < flags.length; i++) {
+          if (flags[i].value === target) {
+            matches.push(flags[i].name + " (" + flags[i].value + ")");
+          }
+        }
+
+        for (let i = 0; i < flags.length; i++) {
+          for (let j = i + 1; j < flags.length; j++) {
+            if (flags[i].value + flags[j].value === target) {
+              matches.push(
+                flags[i].name + " (" + flags[i].value + ") + " +
+                flags[j].name + " (" + flags[j].value + ")"
+              );
+            }
+          }
+        }
+
+        html += "<div class='place'>";
+        html += "<strong>Place " + (place + 1) + " needs " + target + ":</strong><br>";
+
+        if (matches.length === 0) {
+          allSolved = false;
+          html += "<span class='none'>No valid flag combination found.</span>";
+        } else {
+          html += matches.join("<br>");
+        }
+
+        html += "</div>";
+      }
+
+      html += "</div>";
+
+      if (allSolved) {
+        html = "<div class='success'>✅ Solution found.</div>" + html;
+      } else {
+        html = "<div class='error'>❌ No complete solution exists. Check your code or flag values.</div>" + html;
+      }
+
+      output.innerHTML = html;
+    }
+  </script>
+
+</body>
+</html>
